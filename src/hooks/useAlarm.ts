@@ -31,28 +31,47 @@ export default function useAlarm() {
     }, []);
 
     const playAlarm = useCallback((hour: number, minute: number, second: number) => {
-        // console.log(hour, minute, second);
-        // console.log(alarmMap);
-        if (second !== 0) return;
+        if (second !== 0) return; // 분 단위 변경 시에만 확인
         const key = `${hour}:${minute}`;
-        console.log(key);
-        if (!alarmMap[key]) return;
-        let file;
-        switch (alarmMap[key]) {
+        console.log(`Checking alarm for: ${key}`); // 확인 시간 로그
+
+        const alarmType = alarmMap[key];
+        if (!alarmType) return; // 해당 시간에 설정된 알람 없음
+
+        console.log(`Alarm found: ${key} - Type: ${alarmType}`); // 찾은 알람 로그
+
+        let soundFile;
+        switch (alarmType) {
             case "START":
-                file = "./sound/intro.mp3";
-                break;
+            soundFile = "/sound/intro.mp3";
+            break;
             case "END":
-                file = "./sound/outro.mp3";
-                break;
+            soundFile = "/sound/outro.mp3";
+            break;
             case "LUNCH":
-                file = "./sound/lunch.mp3";
-                break;
+            soundFile = "/sound/lunch.mp3";
+            break;
             default:
-                throw new Error("알 수 없는 알람입니다.");
+            // 알 수 없는 알람 타입 처리: 에러 로그 기록 후 종료
+            console.error(`Unknown alarm type: ${alarmType}`);
+            return;
         }
-        const audio = new Audio(file);
-        audio.play();
+
+        console.log(`Attempting to play sound: ${soundFile}`); // 사운드 파일 경로 로그
+
+        const audio = new Audio(soundFile);
+
+        // 오디오 재생 시도
+        audio.play().catch(error => {
+            // 자동 재생 제한을 포함한 오류 처리
+            console.error("Failed to play alarm sound:", error);
+            // 자동 재생이 차단된 경우 사용자에게 알림 (콘솔 경고)
+            if (error.name === 'NotAllowedError') {
+            console.warn("Audio playback was blocked by the browser. User interaction might be required to enable audio.");
+            // 필요시 UI를 통해 사용자에게 직접 알림
+            // alert("브라우저 정책에 의해 알람 소리가 자동으로 재생되지 않았습니다. 페이지와 상호작용(클릭 등) 후에는 정상적으로 재생될 수 있습니다.");
+            }
+        });
     }, [alarmMap]);
 
     return { alarmMap, putAlarm, removeAlarm, playAlarm };
