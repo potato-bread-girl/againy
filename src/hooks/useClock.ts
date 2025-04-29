@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function useClock() {
     const [hour, setHour] = useState(-1);
@@ -14,5 +14,6 @@ export default function useClock() {
         }, 1000);
         return () => clearInterval(interval);
     }, []);
+
     return { hour, minute, second };
 }
